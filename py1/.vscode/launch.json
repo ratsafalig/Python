@@ -1,0 +1,27 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: 当前文件",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
+            "type": "edge",
+            "request": "attach",
+            "name": "Attach to Microsoft Edge",
+            "port": 9999,
+            "webRoot": "${workspaceFolder}"
+        },
+        {
+            "version": "canary",
+            "type": "edge",
+            "request": "launch",
+            "name": "Launch",
+            "file": "${workspaceFolder}/index.html",
+            "webRoot": "${workspaceFolder}"
+        }
+    ]
+}
