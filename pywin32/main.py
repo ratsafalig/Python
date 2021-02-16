@@ -79,5 +79,21 @@ def grab_foreground_screen():
     win32gui.DeleteObject(bmp.GetHandle())
     return cv2.cvtColor(img, cv2.COLOR_BGRA2RGB)
 
+def get_foreground_window_text():
+    hwin = win32gui.GetForegroundWindow()
+    return win32gui.GetWindowText(hwin)
 
-Image.fromarray(grab_foreground_screen(), 'RGB').show()
+# print("\n---\n")
+# print(get_foreground_window_text())
+
+# Image.fromarray(grab_foreground_screen(), 'RGB').show()
+
+import hid
+
+for d in hid.enumerate():
+    keys = list(d.keys())
+    keys.sort()
+    for key in keys:
+        print("%s : %s" % (key, d[key]))
+    print()
+
