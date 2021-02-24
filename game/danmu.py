@@ -45,6 +45,7 @@ class Douyu():
     loginreq = ''
     joingroup = ''
     mrkl = ''
+    listRecv = list()
 
     def __init__(self, loginreq, joingroup):
         self.uri = "wss://danmuproxy.douyu.com:8505/"
@@ -55,14 +56,15 @@ class Douyu():
         self.ssl_context.load_verify_locations(pathlib.Path(__file__).with_name("certification.pem"))
     '''
     '''
-    def __bytes2map(self, data):
+    def __bytes2dict(self, data):
         listBinaryMessage = list()
         i = 0
+        length = 0
         while i < len(data):
             header = data[i : i + 12]
             length = int.from_bytes(header[ : 4], byteorder="little")
-            listBinaryMessage.append(data[i + 12 : i + length + 3])
-            i += (i + length + 4)
+            listBinaryMessage.append(data[i + 12 : i + 12 + length - 8 - 1])
+            i = (i + 12 + length - 8)
         for BinaryMessage in listBinaryMessage:
             BinaryMessage = str(BinaryMessage)[2:]
             result = {}
@@ -94,14 +96,19 @@ class Douyu():
                     seg1 += c_curr
                 i += 1
             result[key] = seg2
-            if 'type' in result.keys() and result["type"] == "chatmsg":
-                try:
+            try:
+                if "txt" in result.keys():
                     result["txt"] = result["txt"].encode("ascii").decode("unicode-escape").encode('latin-1').decode("utf-8")
+                if "nn" in result.keys():
                     result["nn"] = result["nn"].encode("ascii").decode("unicode-escape").encode('latin-1').decode("utf-8")
+                if "bnn" in result.keys():
                     result["bnn"] = result["bnn"].encode("ascii").decode("unicode-escape").encode('latin-1').decode("utf-8")
-                except Exception:
-                    pass
+                if "nickname" in result.keys():
+                    result["nickname"] = result["nickname"].encode("ascii").decode("unicode-escape").encode('latin-1').decode("utf-8")
+            except Exception:
+                pass
             yield result
+
     async def __call__(self):
 
         uri = self.uri
@@ -123,20 +130,22 @@ class Douyu():
                     await websocket.send(mrkl)
                 recv = await websocket.recv()
                 # convert from bytes to map
-                recv = self.__bytes2map(recv)
+                recv = self.__bytes2dict(recv)
                 for rec in recv:
-                    if "type" in rec and str(rec["type"]) == "chatmsg":
-                        print(rec["nn"] + " : " + rec["txt"])
+                    self.listRecv.append(rec)
+                    print(rec)
             except websockets.ConnectionClosedError as cce:
                 print(cce)
             i += 1
 
-async def main():
+douyu = None
+
+def main(loginreq=None, joingroup=None):
     '''
     6400651
     '''
-    # loginreq = 'fb000000fb000000b102000074797065403d6c6f67696e7265712f726f6f6d6964403d363430303635312f64666c403d736e4041413d31303640415373734041413d314053736e4041413d31303740415373734041413d314053736e4041413d31303840415373734041413d314053736e4041413d31303540415373734041413d314053736e4041413d31313040415373734041413d314053736e4041413d756e646566696e656440415373734041413d312f757365726e616d65403d6175746f5f455a4253344f5559436d2f756964403d313437373435372f766572403d32303139303631302f61766572403d3231383130313930312f6374403d302f00'
-    # joingroup = '2d0000002d000000b102000074797065403d6a6f696e67726f75702f726964403d363430303635312f676964403d312f00'
+    loginreq = 'fb000000fb000000b102000074797065403d6c6f67696e7265712f726f6f6d6964403d363430303635312f64666c403d736e4041413d31303640415373734041413d314053736e4041413d31303740415373734041413d314053736e4041413d31303840415373734041413d314053736e4041413d31303540415373734041413d314053736e4041413d31313040415373734041413d314053736e4041413d756e646566696e656440415373734041413d312f757365726e616d65403d6175746f5f455a4253344f5559436d2f756964403d313437373435372f766572403d32303139303631302f61766572403d3231383130313930312f6374403d302f00'
+    joingroup = '2d0000002d000000b102000074797065403d6a6f696e67726f75702f726964403d363430303635312f676964403d312f00'
     '''
     66666
     '''
@@ -150,14 +159,13 @@ async def main():
     '''
     99999
     '''
-    loginreq = 'f9000000f9000000b102000074797065403d6c6f67696e7265712f726f6f6d6964403d39393939392f64666c403d736e4041413d31303640415373734041413d314053736e4041413d31303740415373734041413d314053736e4041413d31303840415373734041413d314053736e4041413d31303540415373734041413d314053736e4041413d31313040415373734041413d314053736e4041413d756e646566696e656440415373734041413d312f757365726e616d65403d6175746f5f455a4253344f5559436d2f756964403d313437373435372f766572403d32303139303631302f61766572403d3231383130313930312f6374403d302f00'
-    joingroup = '2b0000002b000000b102000074797065403d6a6f696e67726f75702f726964403d39393939392f676964403d312f00'
+    # loginreq = 'f9000000f9000000b102000074797065403d6c6f67696e7265712f726f6f6d6964403d39393939392f64666c403d736e4041413d31303640415373734041413d314053736e4041413d31303740415373734041413d314053736e4041413d31303840415373734041413d314053736e4041413d31303540415373734041413d314053736e4041413d31313040415373734041413d314053736e4041413d756e646566696e656440415373734041413d312f757365726e616d65403d6175746f5f455a4253344f5559436d2f756964403d313437373435372f766572403d32303139303631302f61766572403d3231383130313930312f6374403d302f00'
+    # joingroup = '2b0000002b000000b102000074797065403d6a6f696e67726f75702f726964403d39393939392f676964403d312f00'
     '''
     9999
     '''
     # loginreq = 'f8000000f8000000b102000074797065403d6c6f67696e7265712f726f6f6d6964403d393939392f64666c403d736e4041413d31303640415373734041413d314053736e4041413d31303740415373734041413d314053736e4041413d31303840415373734041413d314053736e4041413d31303540415373734041413d314053736e4041413d31313040415373734041413d314053736e4041413d756e646566696e656440415373734041413d312f757365726e616d65403d6175746f5f455a4253344f5559436d2f756964403d313437373435372f766572403d32303139303631302f61766572403d3231383130313930312f6374403d302f00'
     # joingroup = '2a0000002a000000b102000074797065403d6a6f696e67726f75702f726964403d393939392f676964403d312f00'
-
-    await asyncio.create_task(Douyu(loginreq = loginreq, joingroup = joingroup)())
-
-asyncio.run(main())
+    global douyu
+    douyu = Douyu(loginreq=loginreq, joingroup=joingroup)
+    asyncio.run(douyu())
