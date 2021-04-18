@@ -18,3 +18,5 @@ class SC_FLEET(Base):
 
     sc_source = Column(VARCHAR(45))
     sc_destination = Column(VARCHAR(45))
+
+    

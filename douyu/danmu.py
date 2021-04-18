@@ -6,7 +6,7 @@ import re
 import time
 import unicodedata
 import zlib
-
+import numpy as np
 from goto import with_goto
 
 
@@ -14,6 +14,8 @@ from goto import with_goto
 async def bilibili():
     i = 0
     uri = "wss://tx-gz-live-comet-11.chat.bilibili.com/sub"
+    ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+    ssl_context.load_verify_locations(pathlib.Path(__file__).with_name("certification.pem"))
 
     label .flag
 
@@ -34,6 +36,10 @@ async def bilibili():
                     pass
                     # await websocket.send(msg2)
                 recv = await websocket.recv()
+                uint8array = np.frombuffer(recv, dtype=np.uint8)
+                json = ''
+                for uint8 in uint8array:
+                    json += chr(uint8)
                 i += 1
         except websockets.ConnectionClosedError as cce:
             goto .flag
@@ -169,3 +175,7 @@ def main(loginreq=None, joingroup=None):
     global douyu
     douyu = Douyu(loginreq=loginreq, joingroup=joingroup)
     asyncio.run(douyu())
+
+
+asyncio.run(bilibili())
+
