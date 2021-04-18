@@ -111,7 +111,7 @@ encrypt Jekyll with given secret
 OR 
 change encrypted Jekyll with given secret
 '''
-def encryptSingleJekyll(srcSecret, dstSecret, url, filename):
+def encryptSingleJekyll(url, filename, srcSecret, dstSecret=[123,123,123,123]):
     file = open(filename, "r", encoding="utf-8")
     content = file.read()
     file.close()
@@ -229,7 +229,15 @@ def decryptSingleJekyll(secret, filename):
     file.write(content)
     file.flush()
     file.close()
-        
+
+'''       
 decryptSingleJekyll(
     secret=[123,123,123,1234], 
     filename="C:/Users/ratsafalig/Desktop/ratsafalig.github.io/_posts/4/2021-04-12-liquid.md")
+'''
+'''
+encryptSingleJekyll(
+    srcSecret=[123,123,123,123], 
+    url="http://localhost:9999/2021/04/12/liquid.html", 
+    filename="C:/Users/ratsafalig/Desktop/ratsafalig.github.io/_posts/4/2021-04-12-liquid.md")
+'''
