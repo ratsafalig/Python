@@ -97,12 +97,6 @@ def encryptString(secret, data):
     return encryptedString
 
 
-def walk(root=".",r=r".*md"):
-    for dirpath, dirnames, filenames in os.walk(root):
-        for filename in filenames:
-            if re.search(r, filename): 
-                pass
-
 def fetch(r, url="http://localhost:9999"):
     http = urllib3.PoolManager()
     result = http.request("GET", url)
@@ -117,66 +111,125 @@ encrypt Jekyll with given secret
 OR 
 change encrypted Jekyll with given secret
 '''
-def encryptJekyll(srcSecret=[123,123,123,123], dstSecret=[123,123,123,123] ,urls=[], filenames=[]):
-    for i in range(len(urls)):
-        filename = filenames[i]
-        file = open(filename, "r", encoding="utf-8")
-        content = file.read()
-        file.close()
-        frontmatter = re.search(r"---(.|\s|\n)*?---", content).group(0)
-        layout = re.search(r"---(.|\s|\n)*?layout\s*?:\s*?encrypt(.|\s|\n)*?---", frontmatter)
-        # layout is not "layout: encrypt"
+def encryptSingleJekyll(srcSecret, dstSecret, url, filename):
+    file = open(filename, "r", encoding="utf-8")
+    content = file.read()
+    file.close()
+    frontmatter = re.search(r"---(.|\s|\n)*?---", content).group(0)
+    layout = re.search(r"---(.|\s|\n)*?layout\s*?:\s*?encrypt(.|\s|\n)*?---", frontmatter)
+    # layout is not "layout: encrypt"
+    if layout is None:
+        layout = re.search(r"---(.|\s|\n)*?layout\s*?:(.|\s|\n)*?---", frontmatter)
         if layout is None:
-            layout = re.search(r"---(.|\s|\n)*?layout\s*?:(.|\s|\n)*?---", frontmatter)
-            if layout is None:
-                frontmatter = "---\nlayout: article" + frontmatter[3:]
-            article = fetch(url=urls[i], r=r"<article(.|\s|\n)*?article>")
-            aside = fetch(url=urls[i], r=r"<aside(.|\s|\n)*?aside>")
-            encryptedArticle = encryptString(secret=srcSecret, data=article)
-            encryptedAside = encryptString(secret=srcSecret, data=aside)
-            frontmatter = re.sub(r"layout\s*?:\s*?[A-Za-z0-9_]+", "layout: encrypt", frontmatter)
-            content = frontmatter + "\n" + \
-            r"`" + encryptedArticle + r"`{:.article}" + "\n" + \
-            r"`" + encryptedAside + r"`{:.aside}"
-            file = open(filename, "w+", encoding="utf-8") 
-            file.write(content)
-            file.flush()
-            file.close()
-        # layout is "layout: encrypt"
-        else:
-            article = fetch(url=urls[i], r=r"<code[a-zA-Z0-9_=\"\-\s]+article(.|\n|\s)*?code>")
-            aside = fetch(url=urls[i], r=r"<code[a-zA-Z0-9_=\"\-\s]+aside(.|\n|\s)*?code>")
-            encryptedArticle = ""
-            encryptedAside = ""
-            decryptedArticle = ""
-            decryptedAside = ""
-            newEncryptedArticle = ""
-            newEncryptedAside = ""
-            try:
-                encryptedArticle = re.search(r">(.|\s|\n)*?<", article).group(0)[1:-1]
-                decryptedArticle = decryptString(secret=srcSecret, data=encryptedArticle)
-                encryptedAside = re.search(r">(.|\s|\n)*?<", aside).group(0)[1:-1]
-                decryptedAside = decryptString(secret=srcSecret, data=encryptedAside)
-                newEncryptedArticle = encryptString(secret=dstSecret, data=decryptedArticle)
-                newEncryptedAside = encryptString(secret=dstSecret, data=decryptedAside)
-            except:
-                pass
-            content = frontmatter + "\n" + \
-            r"`" + newEncryptedArticle + r"`{:.article}" + "\n" + \
-            r"`" + newEncryptedAside + r"`{:.aside}"
-            file = open(filename, "w+", encoding="utf-8") 
-            file.write(content)
-            file.flush()
-            file.close()
+            frontmatter = "---\nlayout: article" + frontmatter[3:]
+        article = fetch(url=url, r=r"<article(.|\s|\n)*?article>")
+        encryptedArticle = encryptString(secret=srcSecret, data=article)
+        frontmatter = re.sub(r"layout\s*?:\s*?[A-Za-z0-9_]+", "layout: encrypt", frontmatter)
+        content = frontmatter + "\n" + \
+        r"`" + encryptedArticle + r"`{:.article}"
+        file = open(filename, "w+", encoding="utf-8") 
+        file.write(content)
+        file.flush()
+        file.close()
+    # layout is "layout: encrypt"
+    else:
+        article = fetch(url=url, r=r"<code[a-zA-Z0-9_=\"\-\s]+article(.|\n|\s)*?code>")
+        encryptedArticle = ""
+        decryptedArticle = ""
+        newEncryptedArticle = ""
+        try:
+            encryptedArticle = re.search(r">(.|\s|\n)*?<", article).group(0)[1:-1]
+            decryptedArticle = decryptString(secret=srcSecret, data=encryptedArticle)
+            newEncryptedArticle = encryptString(secret=dstSecret, data=decryptedArticle)
+        except:
+            pass
+        content = frontmatter + "\n" + \
+        r"`" + newEncryptedArticle + r"`{:.article}"
+        file = open(filename, "w+", encoding="utf-8") 
+        file.write(content)
+        file.flush()
+        file.close()
+
+'''
+baseUrl : url of blog, such as http://localhost:9999
+baseDir : _posts directory, such as c:/a/b
+'''
+def encryptAllJekyll(baseUrl, baseDir, srcSecret, dstSecret):
+    r = r".*?\.md$"
+    for dirpath, dirnames, filenames in os.walk(baseDir):
+        for filename in filenames:
+            if re.search(r, filename): 
+                year = filename[0 : 4]
+                month = filename[5 : 7]
+                day = filename[8 : 10]
+                url = baseUrl + "/" + year + "/" + month + "/" + day + "/" + filename[11 : -3] + ".html"
+                dir = dirpath + "\\" + filename
+                encryptSingleJekyll(
+                    srcSecret=srcSecret, 
+                    dstSecret=dstSecret, 
+                    url=url, 
+                    ilename=dir)
+
+'''       
+encryptAllJekyll(
+    baseUrl="http://localhost:9999", 
+    baseDir="C:\\Users\\ratsafalig\\Desktop\\ratsafalig.github.io\\_posts", 
+    srcSecret=[123,123,123,123], 
+    dstSecret=[123,123,123,1234])
+'''
+
+def encryptString(secret, data):
+    if len(data) % 4 != 0:
+        i = len(data) % 4
+        for j in range(4 - i):
+            data += "`"
+    decryptedSegment = bytes()
+    encryptedString = ""
+    for i in range(len(data)):
+        decryptedSegment += ord(data[i]).to_bytes(4, byteorder="big", signed=True)
+        if len(decryptedSegment) == 16:
+            encryptedSegment = encryptAes(secret=secret, data=decryptedSegment)
+            _1 = encryptedSegment[0 : 4]
+            _2 = encryptedSegment[4 : 8]
+            _3 = encryptedSegment[8 : 12]
+            _4 = encryptedSegment[12 : 16]
+            _1 = str(int.from_bytes(_1, byteorder="big", signed=True))
+            _2 = str(int.from_bytes(_2, byteorder="big", signed=True))
+            _3 = str(int.from_bytes(_3, byteorder="big", signed=True))
+            _4 = str(int.from_bytes(_4, byteorder="big", signed=True))
+            if len(encryptedString) != 0:
+                encryptedString += ','
+            encryptedString += _1 + "," + _2 + "," + _3 + "," + _4
+            decryptedSegment = bytes()
+    return encryptedString
+
+
+def fetch(r, url="http://localhost:9999"):
+    http = urllib3.PoolManager()
+    result = http.request("GET", url)
+    data = result.data.decode("utf-8")
+    try:
+        return re.search(r, data).group(0)
+    except:
+        return ""
+
+'''
+decrypt Jekyll with given secret 
+'''
+def decryptSingleJekyll(secret, filename):
+    file = open(filename, "r", encoding="utf-8")
+    content = file.read()
+    file.close()
+    frontmatter = re.search(r"---(.|\s|\n)*?---", content).group(0)
+    encryptedArticle = re.search(r"`.*?`{:.article}", content).group(0)[1 : -12]
+    decryptedArticle = decryptString(secret=secret, data=encryptedArticle)
+    file = open(filename, "w+", encoding="utf-8")
+    content = frontmatter + "\n" + \
+    decryptedArticle
+    file.write(content)
+    file.flush()
+    file.close()
         
-
-encryptJekyll(
-    srcSecret=[123,123,123,123],
-    dstSecret=[123,123,123,1234],
-    urls=[
-        "http://localhost:9999/2021/04/12/liquid.html"], 
-    filenames=[
-        "C:\\Users\\ratsafalig\\Desktop\\ratsafalig.github.io\\_posts\\4\\2021-04-12-liquid.md"])
-
-
-        
+decryptSingleJekyll(
+    secret=[123,123,123,1234], 
+    filename="C:/Users/ratsafalig/Desktop/ratsafalig.github.io/_posts/4/2021-04-12-liquid.md")
