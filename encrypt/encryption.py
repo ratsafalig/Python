@@ -203,30 +203,3 @@ def decryptAllJekyll(secret, dir, include=[], exclude=[]):
             if filename in exclude:
                 continue
             decryptSingleJekyll(secret, dirpath + "\\" + filename)
-
-'''       
-decryptSingleJekyll(
-    secret=[123,123,123,1234], 
-    filename="C:/Users/ratsafalig/Desktop/ratsafalig.github.io/_posts/4/2021-04-12-liquid.md")
-
-'''
-'''
-encryptSingleJekyll(
-    srcSecret=[123,123,123,123], 
-    url="http://localhost:9999/2021/04/12/liquid.html", 
-    filename="C:/Users/ratsafalig/Desktop/ratsafalig.github.io/_posts/4/2021-04-12-liquid.md")
-'''
-'''
-encryptAllJekyll(
-    baseDir="C:/Users/ratsafalig/Desktop/ratsafalig.github.io/_posts",
-    baseUrl="http://localhost:9999",
-    srcSecret=[123,123,123,123],
-    dstSecret=[123,123,123,123],
-    include=[
-        "2021-04-18-hello-encryption-world.md"])
-'''
-
-decryptAllJekyll(
-    secret=[123,123,123,123], 
-    dir="C:/Users/ratsafalig/Desktop/ratsafalig.github.io/_posts",
-    include=["2021-04-12-liquid.md"])
