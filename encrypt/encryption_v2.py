@@ -126,14 +126,15 @@ def decryptAllJekyll(secret, _posts, include=[], exclude=[]):
                 pass
             blogPath = dirpath + "\\" + filename
             decryptSingleJekyll(secret=secret, filename=blogPath)
+
 '''
 decryptAllJekyll(
     secret=b"1234123412341234",
-    _posts="C:/Users/ratsafalig/Desktop/ratsafalig.github.io/_posts",
-    include=["2021-04-11-encryption.md"])
+    _posts="D:\\Users\\Administrator\\Desktop\\ratsafalig.github.io\\_posts")
 '''
+
 encryptAllJekyll(
-    secret=b"1234123412341234",
+    secret=b"Free2plays!!!igg",
     url="http://localhost:9999",
-    _posts="C:/Users/ratsafalig/Desktop/ratsafalig.github.io/_posts",
-    include=["2021-04-11-encryption.md"])
+    _posts="D:\\Users\\Administrator\\Desktop\\ratsafalig.github.io/_posts/igg")
+
