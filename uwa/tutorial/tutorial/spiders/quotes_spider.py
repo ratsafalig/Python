@@ -15,15 +15,10 @@ class QuotesSpider(scrapy.Spider):
             'https://www.uwa4d.com/api/report/pipeline/plugin?commonId=27436&dataKey=20210722165920any74357878&pluginId=1',
         ]
         
-        yield scrapy.Request("https://www.uwa4d.com/api/m/signin", "POST", body={
-            "account" : "18750016043",
-            "auth_code" : "",
-            "keep_login" : False,
-            "password" : "00d045d080c5a0685994081f379d01d7",
-            "redirect" : "https://www.uwa4d.com/u/overview.html",
-            "type" : 1,
-            "uwaLoginToken" : "",
-        },
+        yield scrapy.Request(
+            url="https://www.uwa4d.com/api/m/signin", 
+            method="POST", 
+            body='{account:"18750016043",auth_code:"keep_login":false,password:"00d045d080c5a0685994081f379d01d7",redirect:"https://www.uwa4d.com/u/overview.html",type:1,uwaLoginToken:""}',
         callback=self.prt)
 
         for url in urls:
